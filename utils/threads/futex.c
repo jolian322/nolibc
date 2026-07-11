@@ -85,7 +85,7 @@ void thread_function(void)
     P(&lock);
     for (int i = 0; i < ntimes; i++)
     {
-
+        
         cnt++;
     }
     V(&lock);

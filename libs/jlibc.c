@@ -856,6 +856,23 @@ ssize_t _sendmsg(int sockfd, const struct msghdr *msg, int flags)
 	);
 	return (ssize_t)ret;
 }
+int _mprotect(void *addr, size_t len, int prot)
+{
+	long ret;
+	__asm__ volatile(
+		"syscall"
+		: "=a"(ret)
+		: "a"(SYS_mprotect) // rax
+		  ,
+		  "D"(addr) // rdi
+		  ,
+		  "S"(len) // rsi
+		  ,
+		  "d"(prot)			 // rdx
+		: "rcx", "r11", "memory" // Clobbers
+	);
+	return (int)ret;
+}
 ssize_t _recvfrom(int sockfd, void *buf, size_t size, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
 {
 	// receive a message from a socket, potentially capturing the source address (for datagram sockets) or from the connected peer (for stream sockets). flags can be used to specify special behavior (e.g., MSG_DONTWAIT for non-blocking receive, MSG_PEEK to peek at the incoming message without removing it from the queue, etc.). src_addr and addrlen are used for datagram sockets to store the source address of the received message; for stream sockets, they are ignored.

@@ -245,22 +245,23 @@ extern ssize_t _recvfrom(int sockfd, void *buf, size_t size, int flags, struct s
 extern ssize_t _sendmsg(int sockfd, const struct msghdr *msg, int flags);                                                        // send a message on a socket
 extern ssize_t _recvmsg(int sockfd, struct msghdr *msg, int flags);                                                              // receive a message from a socket
 extern int _shutdown(int sockfd, int how);                                                                                       // shut down part or all of a socket
-extern int _select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+extern int _select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);                     // monitor multiple file descriptors for readiness to perform I/O
 extern pid_t _clone(
     unsigned long flags,
     unsigned long stack,
     int *parent_tid,
     int *child_tid,
-    unsigned long tls);
+    unsigned long tls); // create a new process or thread with specified flags, stack, and optional TID pointers
 extern long _futex(
     uint32_t *uaddr,
     int op,
     uint32_t val,
     const struct timespec *utime,
     uint32_t *uaddr2,
-    int val3);
-extern int _tgkill(pid_t tgid, pid_t tid, int sig);
-extern pid_t _set_tid_address(int *tidptr);
+    int val3);                                          // perform a futex operation on a futex located at uaddr
+extern int _tgkill(pid_t tgid, pid_t tid, int sig);     // send a signal to a specific thread in a specific process
+extern pid_t _set_tid_address(int *tidptr);             // set the address of the TID for the calling thread
+extern int _mprotect(void *addr, size_t len, int prot); // change protection of memory region
 /*
  * cloning flags:
  */
@@ -428,48 +429,50 @@ extern pid_t _set_tid_address(int *tidptr);
 #define BUFFER_SIZE_SMALL 256    // small buffer size for temporary use (e.g., reading small files, formatting output)
 #define BUFFER_SIZE_OPTIMAL 1024 //   optimal buffer size for general use (e.g., reading typical files, formatting output)
 #define BUFFER_SIZE_MEDIUM 4096  // medium buffer size for larger data (e.g., reading large files, formatting large output)
+#define PAGE_SIZE 4096           // typical page size for memory mapping and buffer alignment
 #define BUFFER_SIZE_LARGE 8192   // large buffer size for very large data (e.g., reading very large files, formatting very large output)
 // syscalls numbers
-#define SYS_read 0            // read from a file descriptor
-#define SYS_write 1           // write to a file descriptor
-#define SYS_open 2            // open and possibly create a file
-#define SYS_close 3           // close a file descriptor
-#define SYS_getpid 39         // get the process ID
-#define SYS_getppid 110       // get the parent process ID
-#define SYS_exit 60           // terminate the calling process
-#define SYS_fork 57           // create a child process
-#define SYS_wait4 61          //  wait for process to change state (exit or stop) and returns its pid
-#define SYS_rt_sigaction 13   // examine and change a signal action
-#define SYS_rt_sigreturn 15   // return from signal handler
-#define SYS_rt_sigprocmask 14 // examine and change blocked signals
-#define SYS_rt_sigsuspend 130 // temporarily replace the signal mask and suspend execution until a signal is received
-#define SYS_rt_sigpending 127 // examine pending signals
-#define SYS_kill 62           // send a signal to a process
-#define SYS_alarm 37          // set an alarm clock for delivery of a signal
-#define SYS_execve 59         // execute a program
-#define SYS_ioctl 16          // control device
-#define SYS_dup 32            // duplicate a file descriptor
-#define SYS_dup2 33           // replace a file descriptor
-#define SYS_setpgid 109       // set process group ID
-#define SYS_mmap 9            // map file or a segment dynamic
-#define SYS_brk 12            // set program break
-#define SYS_munmap 11         // unmap
-#define SYS_writev 20         // write multiple buffers
-#define SYS_socket 41         // create an endpoint for communication and return a file descriptor
-#define SYS_bind 49           // bind a name to a socket
-#define SYS_listen 50         // listen for connections on a socket
-#define SYS_accept4 288       // accept a connection on a socket flag 0 for normal accept
-#define SYS_connect 42        // initiate a connection on a socket
-#define SYS_sendto 44         // send a message on a socket
-#define SYS_recvfrom 45       // receive a message from a socket
-#define SYS_sendmsg 46        // send a message on a socket
-#define SYS_recvmsg 47        // receive a message from a socket
-#define SYS_shutdown 48       // shut down part or all of a socket
-#define SYS_select 23         //
-#define SYS_clone 56
-#define SYS_futex 202
-#define SYS_tgkill 234
-#define SYS_set_tid_address 256
+#define SYS_read 0              // read from a file descriptor
+#define SYS_write 1             // write to a file descriptor
+#define SYS_open 2              // open and possibly create a file
+#define SYS_close 3             // close a file descriptor
+#define SYS_getpid 39           // get the process ID
+#define SYS_getppid 110         // get the parent process ID
+#define SYS_exit 60             // terminate the calling process
+#define SYS_fork 57             // create a child process
+#define SYS_wait4 61            //  wait for process to change state (exit or stop) and returns its pid
+#define SYS_rt_sigaction 13     // examine and change a signal action
+#define SYS_rt_sigreturn 15     // return from signal handler
+#define SYS_rt_sigprocmask 14   // examine and change blocked signals
+#define SYS_rt_sigsuspend 130   // temporarily replace the signal mask and suspend execution until a signal is received
+#define SYS_rt_sigpending 127   // examine pending signals
+#define SYS_kill 62             // send a signal to a process
+#define SYS_alarm 37            // set an alarm clock for delivery of a signal
+#define SYS_execve 59           // execute a program
+#define SYS_ioctl 16            // control device
+#define SYS_dup 32              // duplicate a file descriptor
+#define SYS_dup2 33             // replace a file descriptor
+#define SYS_setpgid 109         // set process group ID
+#define SYS_mmap 9              // map file or a segment dynamic
+#define SYS_brk 12              // set program break
+#define SYS_munmap 11           // unmap
+#define SYS_writev 20           // write multiple buffers
+#define SYS_socket 41           // create an endpoint for communication and return a file descriptor
+#define SYS_bind 49             // bind a name to a socket
+#define SYS_listen 50           // listen for connections on a socket
+#define SYS_accept4 288         // accept a connection on a socket flag 0 for normal accept
+#define SYS_connect 42          // initiate a connection on a socket
+#define SYS_sendto 44           // send a message on a socket
+#define SYS_recvfrom 45         // receive a message from a socket
+#define SYS_sendmsg 46          // send a message on a socket
+#define SYS_recvmsg 47          // receive a message from a socket
+#define SYS_shutdown 48         // shut down part or all of a socket
+#define SYS_select 23           // monitor multiple file descriptors for readiness to perform I/O
+#define SYS_clone 56            // create a new process or thread with specified flags, stack, and optional TID pointers
+#define SYS_futex 202           // perform a futex operation on a futex located at uaddr
+#define SYS_tgkill 234          // send a signal to a specific thread in a specific process
+#define SYS_set_tid_address 256 // set the address of the TID for the calling thread
+#define SYS_mprotect 10         // change protection of memory region
 //// access modes
 #define O_RDONLY 00      // reading only
 #define O_WRONLY 01      // writing only
