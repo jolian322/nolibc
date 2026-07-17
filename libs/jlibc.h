@@ -230,7 +230,7 @@ extern long _charsTillSep(const char *str, char sep);                           
 extern void _replaceChars(const char *str, char oldChar, char newChar);                                                          // replace all occurrences of oldChar with newChar in the string
 extern void *_brk(void *addr);                                                                                                   // set new program break
 extern void *_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);                                        // map file or new segment
-extern int _munmap(unsigned long addr, size_t len);                                                                              // mem unmap
+extern int _munmap(void *addr, size_t len);                                                                              // mem unmap
 extern int _setpgid(pid_t pid, pid_t pgid);                                                                                      // set group id
 extern int _strncmp(const char *s1, const char *s2, size_t n);                                                                   // compare two strings up to n characters
 extern char *_getENV(const char *name, char **envp);                                                                             // get the value of an environment variable from envp
@@ -248,7 +248,7 @@ extern int _shutdown(int sockfd, int how);                                      
 extern int _select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);                     // monitor multiple file descriptors for readiness to perform I/O
 extern pid_t _clone(
     unsigned long flags,
-    unsigned long stack,
+    unsigned long *stack,
     int *parent_tid,
     int *child_tid,
     unsigned long tls); // create a new process or thread with specified flags, stack, and optional TID pointers

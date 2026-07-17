@@ -1,6 +1,20 @@
 #include "jlibc.h"
 #include "jmem.c"
 
+
+void _jthread_entry(void (*fn)(void *), void *arg)
+{
+    fn(arg);
+    _exit(0);
+}
+
+__attribute__((naked)) void _jthread_trampoline(void)
+{
+    __asm__(
+        "pop %rdi\n"
+        "pop %rsi\n"
+        "ret\n");
+}
 void futex_wait(uint32_t *addr, uint32_t val)
 {
     _futex(addr, FUTEX_WAIT, val, 0, 0, 0);
@@ -87,16 +101,38 @@ int jthread_join(jthread_t *handle)
     return 0;
 }
 
-void _jthread_entry(void (*fn)(void *), void *arg)
+
+
+// semaphore P and V operations
+void j_P(uint32_t *addr)
 {
-    fn(arg);
-    _exit(0);
+    while (1)
+    {
+        uint32_t cur = __atomic_load_n(addr, __ATOMIC_SEQ_CST);
+        if (cur > 0){
+            if (__atomic_compare_exchange_n(addr, &cur, cur - 1, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+                return;
+            continue; 
+            }
+        futex_wait((uint32_t *)addr, cur);
+    }
+}
+void j_V(uint32_t *addr)
+{
+    __atomic_fetch_add(addr, 1, __ATOMIC_SEQ_CST);
+    futex_wake((uint32_t *)addr, 1);
 }
 
-__attribute__((naked)) void _jthread_trampoline(void)
+// mutex (binary semaphore)
+void jmutex_lock(uint32_t *addr)
 {
-    __asm__(
-        "pop %rdi\n"
-        "pop %rsi\n"
-        "ret\n");
+    j_P(addr);
+}
+
+void jmutex_unlock(uint32_t *addr)
+{
+    uint32_t expected = 0;
+    if (__atomic_compare_exchange_n(addr, &expected, 1, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)){
+        futex_wake((uint32_t *)addr, 1);
+    }
 }

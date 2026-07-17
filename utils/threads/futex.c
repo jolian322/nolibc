@@ -1,4 +1,4 @@
-#include "../../libs/jlibc.h"
+#include "jlibc.h"
 
 void _futex_wait(uint32_t *addr, uint32_t val)
 {

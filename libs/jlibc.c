@@ -659,7 +659,7 @@ void *_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset
 		: "rcx", "r11", "memory");
 	return ret;
 }
-int _munmap(unsigned long addr, size_t len)
+int _munmap(void *addr, size_t len)
 {
 	long ret;
 	__asm__ volatile(
@@ -904,7 +904,7 @@ __attribute__((naked))
 pid_t
 _clone(
 	unsigned long flags, // rdi
-	unsigned long stack, // rsi
+	unsigned long *stack, // rsi
 	int *parent_tid,	 // rdx
 	int *child_tid,		 // rcx  must move to r10
 	unsigned long tls)	 // r8
