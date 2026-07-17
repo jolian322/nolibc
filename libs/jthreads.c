@@ -1,6 +1,6 @@
 #include "jlibc.h"
-#include "jmem.c"
-
+#include "jmem.h"
+#include "jthreads.h"
 
 void _jthread_entry(void (*fn)(void *), void *arg)
 {
@@ -24,12 +24,7 @@ void futex_wake(uint32_t *addr, uint32_t val)
 {
     _futex(addr, FUTEX_WAKE, val, 0, 0, 0);
 }
-typedef struct
-{
-    pid_t tid;
-    void *mem_base;
-    int joined;
-} jthread_t;
+
 
 jthread_t _jthreads[1024];
 int _jthreadp = 0;

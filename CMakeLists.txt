@@ -16,7 +16,7 @@ add_library(jthreads OBJECT libs/jthreads.c libs/jthreads.h)
 target_link_libraries(jthreads PUBLIC jlibc)
 
 # jmem
-add_library(jmem OBJECT libs/jmem.c)
+add_library(jmem OBJECT libs/jmem.c libs/jmem.h)
 target_link_libraries(jmem PUBLIC jlibc)
 
 # testing futex

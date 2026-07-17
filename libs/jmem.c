@@ -1,8 +1,7 @@
 #include "jlibc.h"
+#include "jmem.h"
 
-#define STACK_SIZE 2097152 // 2MB
-
-unsigned long *jstack()
+void *jstack()
 {
     char *mem = (char *)_mmap(
         NULL,
@@ -16,5 +15,5 @@ unsigned long *jstack()
 
     _mprotect(mem, PAGE_SIZE, PROT_NONE);
     _mprotect(mem + PAGE_SIZE + STACK_SIZE, PAGE_SIZE, PROT_NONE);
-    return (unsigned long *)(mem + PAGE_SIZE);
+    return (void *)(mem + PAGE_SIZE);
 }
