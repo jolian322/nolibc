@@ -12,7 +12,7 @@ add_library(nolibc_exe_flags INTERFACE)
 target_link_options(nolibc_exe_flags INTERFACE -nostdlib -static -no-pie -Wl,-e,_start)
 
 # jthreads
-add_library(jthreads OBJECT libs/jthreads.c libs/jthreads.h)
+add_library(jthreads OBJECT libs/jthreads.c libs/jthreads.h libs/jmem.c libs/jmem.h)
 target_link_libraries(jthreads PUBLIC jlibc)
 
 # jmem

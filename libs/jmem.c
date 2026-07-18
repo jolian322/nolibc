@@ -1,5 +1,15 @@
 #include "jlibc.h"
 #include "jmem.h"
+#include "jds.c"
+
+void* jmalloc(size_t bytes){
+    void* mem = (void*)_mmap(NULL,PAGE_SIZE,PROT_READ | PROT_WRITE,0,-1,0);
+    return mem;
+}
+int jfree(void* mem){
+    int ret =  _munmap(mem, PAGE_SIZE);
+    return ret;
+}
 
 void *jstack()
 {
